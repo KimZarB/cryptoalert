@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CryptoAlert">
+<title>CryptoAlert</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0a0c10;--bg2:#12151c;--bg3:#1a1e28;--bg4:#222736;--border:#252a38;--border2:#2f3547;--text:#e8eaf2;--muted:#5a6180;--muted2:#7a839a;--green:#16c784;--red:#ea3943;--accent:#5865f2;--accent2:#7c89ff;--yellow:#f0b90b;--orange:#f7931a}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:var(--text)}
+#app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
+.hdr{background:var(--bg2);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr-title{font-size:18px;font-weight:700;letter-spacing:-.5px;flex:1}
+.ws-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);transition:background .4s;flex-shrink:0}
+.ws-dot.live{background:var(--green);box-shadow:0 0 0 2px #16c78430}
+.ws-label{font-size:11px;color:var(--muted2)}
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:11px 0;text-align:center;font-size:13px;font-weight:500;color:var(--muted2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+.tbadge{background:var(--accent);color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px}
+.sbar{padding:9px 12px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.swrap{position:relative;flex:1}
+.sinp{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px 8px 32px;color:var(--text);font-size:14px;outline:none}
+.sinp::placeholder{color:var(--muted)}
+.sinp:focus{border-color:var(--accent)}
+.sico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none}
+.fbtn{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--muted2);cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;transition:all .15s}
+.fbtn.on{background:#5865f215;border-color:var(--accent);color:var(--accent2)}
+.plist{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.plist::-webkit-scrollbar{display:none}
+.prow{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);gap:10px;cursor:pointer;position:relative;min-height:56px;transition:background .1s}
+.prow:active{background:var(--bg3)}
+.prow.ha::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:0 2px 2px 0}
+.pico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.pname{font-weight:600;font-size:14px;letter-spacing:-.2px}
+.psub{font-size:11px;color:var(--muted2);margin-top:1px;display:flex;align-items:center;gap:4px}
+.pright{text-align:right;flex-shrink:0;min-width:80px}
+.pprice{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.pchg{font-size:11px;font-weight:600;margin-top:2px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.xtag{font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;letter-spacing:.3px}
+.xbin{background:#f0b90b22;color:var(--yellow)}
+.xbyb{background:#f7931a22;color:var(--orange)}
+.adots{position:absolute;top:8px;right:10px;display:flex;gap:3px}
+.adot{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.lrow{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+@keyframes fup{0%{background:#16c78430}100%{background:transparent}}
+@keyframes fdn{background:#ea394330}100%{background:transparent}}
+.fu{animation:fup .5s}.fd{animation:fdn .5s}
+.apane{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
+.apane::-webkit-scrollbar{display:none}
+.addbtn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--bg3);border:1px dashed var(--border2);border-radius:10px;padding:13px;color:var(--muted2);font-size:13px;cursor:pointer;margin-bottom:12px}
+.addbtn:active{background:#5865f215;border-color:var(--accent);color:var(--accent2)}
+.acard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.acard.trig{border-color:#ea394340;animation:cardflash .6s}
+@keyframes cardflash{0%{border-color:#ea3943}50%{border-color:#ea394380}100%{border-color:#ea394340}}
+.achdr{padding:11px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.acpair{font-weight:700;font-size:15px;flex:1}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--border2);position:relative;cursor:pointer;border:none;outline:none;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s}
+.toggle.on::after{transform:translateX(18px)}
+.acbody{padding:10px 14px 12px}
+.adet{font-size:13px;color:var(--muted2);margin-bottom:6px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.adet strong{color:var(--text)}
+.pill{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.rpill{background:#ea394420;border:1px solid #ea394440;color:var(--red)}
+.gpill{background:#16c78420;border:1px solid #16c78440;color:var(--green)}
+.aacts{display:flex;gap:7px;margin-top:10px}
+.btn{padding:7px 12px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.btn:active{opacity:.7;transform:scale(.97)}
+.bprimary{background:var(--accent);color:#fff}
+.bghost{background:var(--bg3);border:1px solid var(--border2);color:var(--muted2)}
+.bdanger{background:#ea394415;border:1px solid #ea394430;color:var(--red)}
+.bsm{padding:5px 10px;font-size:11px}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.eico{font-size:34px;margin-bottom:8px}
+.etxt{font-size:13px;line-height:1.6}
+.modal-bd{position:absolute;inset:0;background:#000b;z-index:100;display:flex;align-items:flex-end}
+.msheet{background:var(--bg2);border-radius:16px 16px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding-bottom:calc(env(safe-area-inset-bottom,0px)+12px)}
+.msheet::-webkit-scrollbar{display:none}
+.mhandle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:10px auto 2px}
+.mtitle{font-size:16px;font-weight:600;padding:8px 16px 12px}
+.msec{padding:0 16px 14px}
+.flabel{font-size:11px;font-weight:600;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.fctl{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;margin-bottom:12px}
+.fctl:focus{border-color:var(--accent)}
+.fctl option{background:var(--bg3)}
+.fhint{font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:12px}
+.cpricehint{font-size:12px;color:var(--accent2);padding:8px 10px;background:#5865f215;border-radius:6px;margin-bottom:12px}
+.pres{max-height:200px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);margin-bottom:12px}
+.pres::-webkit-scrollbar{display:none}
+.pitem{padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);transition:background .1s}
+.pitem:last-child{border-bottom:none}
+.pitem:active,.pitem.sel{background:#5865f220}
+.pitem-name{font-weight:600;font-size:13px;flex:1}
+.pitem-price{font-size:12px;color:var(--muted2);font-variant-numeric:tabular-nums}
+.srow{display:flex;gap:8px;align-items:flex-start;margin-bottom:12px}
+.stbtn{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--muted2);cursor:pointer;white-space:nowrap;font-size:13px;font-family:inherit;flex-shrink:0}
+.stbtn:active{background:#5865f215;color:var(--accent2)}
+.mfooter{padding:4px 16px 4px;display:flex;gap:10px}
+.mfooter .btn{flex:1;padding:13px;font-size:14px}
+.toast{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 18px;font-size:13px;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
+.toast.show{opacity:1}
+.flash-ov{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:90;transition:opacity .3s;background:#ea394418}
+.flash-ov.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-title">⚡ CryptoAlert</div>
+    <div class="ws-dot" id="wsDot"></div>
+    <div class="ws-label" id="wsLabel">conectare...</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="tP" onclick="switchTab('prices')">📊 Prețuri</div>
+    <div class="tab" id="tA" onclick="switchTab('alarms')">🔔 Alarme<span class="tbadge" id="acnt" style="display:none">0</span></div>
+  </div>
+
+  <div id="ppane" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="sbar">
+      <div class="swrap">
+        <span class="sico">🔍</span>
+        <input class="sinp" id="sinp" type="text" placeholder="Caută BTC, ETH, SOL..." autocomplete="off" autocorrect="off" autocapitalize="off">
+      </div>
+      <button class="fbtn on" id="fb_binance" onclick="toggleFilter('binance')">Binance</button>
+      <button class="fbtn on" id="fb_bybit" onclick="toggleFilter('bybit')">Bybit</button>
+    </div>
+    <div class="plist" id="plist"></div>
+  </div>
+
+  <div id="apane" class="apane" style="display:none">
+    <div class="addbtn" onclick="openModal(null)">+ Alarmă nouă</div>
+    <div id="alist"></div>
+  </div>
+
+  <div class="modal-bd" id="modal" style="display:none" onclick="handleBDClick(event)">
+    <div class="msheet" onclick="event.stopPropagation()">
+      <div class="mhandle"></div>
+      <div class="mtitle" id="mtitle">Alarmă nouă</div>
+      <div class="msec">
+        <div class="flabel">Pereche crypto</div>
+        <div class="swrap" style="margin-bottom:8px">
+          <span class="sico">🔍</span>
+          <input class="fctl sinp" id="mpsearch" placeholder="Caută simbol..." autocomplete="off" style="padding-left:32px;margin-bottom:0">
+        </div>
+        <div class="pres" id="mpres"></div>
+        <div class="cpricehint" id="cpricehint" style="display:none"></div>
+        <div class="flabel">Condiție alarmă</div>
+        <select class="fctl" id="mcond">
+          <option value="above">📈 Prețul urcă PESTE target</option>
+          <option value="below">📉 Prețul coboară SUB target</option>
+          <option value="both">↕ Orice trecere prin target</option>
+        </select>
+        <div class="flabel">Preț target (USDT)</div>
+        <input class="fctl" id="mprice" type="number" step="any" placeholder="ex: 65000">
+        <div class="fhint">Alarma pornește la fiecare trecere prin acest preț</div>
+        <div class="flabel">Sunet alarmă</div>
+        <div class="srow">
+          <select class="fctl" id="msound" style="margin-bottom:0">
+            <option value="ping">🔔 Ping clasic</option>
+            <option value="beep">📡 Beep digital</option>
+            <option value="chime">🎵 Chime melodic</option>
+            <option value="alert">🚨 Alert urgent</option>
+            <option value="bell">🕭 Clopoțel</option>
+            <option value="blip">💡 Blip scurt</option>
+            <option value="rise">📈 Rise tone</option>
+            <option value="fall">📉 Fall tone</option>
+            <option value="police">🚔 Sirena poliție</option>
+            <option value="ambulance">🚑 Sirena ambulanță</option>
+            <option value="firefighter">🚒 Sirena pompieri</option>
+            <option value="nuclear">☢️ Alertă nucleară</option>
+            <option value="submarine">🌊 Sonar submarin</option>
+            <option value="radar">📻 Radar militar</option>
+            <option value="spaceship">🚀 Navă spațială</option>
+          </select>
+          <button class="stbtn" onclick="testModalSound()">▶ Test</button>
+        </div>
+        <div class="flabel">Notă (opțional)</div>
+        <input class="fctl" id="mnote" type="text" placeholder="ex: target profit, stop loss..." style="margin-bottom:0">
+      </div>
+      <div class="mfooter">
+        <button class="btn bghost" onclick="closeModal()">Anulează</button>
+        <button class="btn bprimary" id="msavebtn" onclick="saveAlarm()">Salvează</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flash-ov" id="fov"></div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+const S = {
+  pairs: [],          // all TradingPairs
+  prices: {},         // sym -> {price, change, prevPrice}
+  alarms: [],
+  filters: {binance:true, bybit:true},
+  query: '',
+  tab: 'prices',
+  editId: null,
+  selSym: null,
+  audioCtx: null,
+  lastSide: {},       // alarmId -> 'above'|'below' for persistent crossing
+  wsReady: {binance:false, bybit:false},
+  bybitPrices: {},    // sym->price specifically from bybit REST
+};
+
+// ═══════════════════════════════════════════════════════
+// AUDIO - 15 sounds including emergency services
+// ═══════════════════════════════════════════════════════
+function getCtx(){
+  if(!S.audioCtx) S.audioCtx = new(window.AudioContext||window.webkitAudioContext)();
+  if(S.audioCtx.state==='suspended') S.audioCtx.resume();
+  return S.audioCtx;
+}
+function osc(ctx,type,freq,t){const o=ctx.createOscillator();o.type=type;o.frequency.setValueAtTime(freq,t);return o;}
+function gain(ctx,vol,t,dur){const g=ctx.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);return g;}
+
+const SOUNDS={
+  ping:(c,t)=>{const o=osc(c,'sine',880,t),g=gain(c,.4,t,.4);o.frequency.exponentialRampToValueAtTime(440,t+.3);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.4);},
+  beep:(c,t)=>{const o=osc(c,'square',1200,t),g=c.createGain();o.connect(g);g.connect(c.destination);[0,.09,.15,.24].forEach((x,i)=>{g.gain.setValueAtTime(i%2===0?.2:0,t+x)});o.start(t);o.stop(t+.3);},
+  chime:(c,t)=>{[523,659,784,1047].forEach((f,i)=>{const o=osc(c,'sine',f,t+i*.12),g=c.createGain();o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(0,t+i*.12);g.gain.linearRampToValueAtTime(.3,t+i*.12+.04);g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.5);o.start(t+i*.12);o.stop(t+i*.12+.5);});},
+  alert:(c,t)=>{[600,800,600,800].forEach((f,i)=>{const o=osc(c,'sawtooth',f,t+i*.1),g=c.createGain();o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.15,t+i*.1);g.gain.setValueAtTime(.15,t+i*.1+.09);g.gain.setValueAtTime(0,t+i*.1+.1);o.start(t+i*.1);o.stop(t+i*.1+.1);});},
+  bell:(c,t)=>{const o=osc(c,'sine',1760,t),g=gain(c,.5,t,1.2);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+1.2);},
+  blip:(c,t)=>{const o=osc(c,'sine',1400,t),g=gain(c,.35,t,.1);o.frequency.exponentialRampToValueAtTime(700,t+.06);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.1);},
+  rise:(c,t)=>{const o=osc(c,'sine',400,t),g=gain(c,.3,t,.5);o.frequency.exponentialRampToValueAtTime(900,t+.4);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.5);},
+  fall:(c,t)=>{const o=osc(c,'sine',900,t),g=gain(c,.3,t,.5);o.frequency.exponentialRampToValueAtTime(300,t+.4);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.5);},
+  // 🚔 Poliție - two-tone wail alternating 770/990 Hz
+  police:(c,t)=>{
+    for(let i=0;i<4;i++){
+      const o=osc(c,'sawtooth',770,t+i*.4),g=c.createGain();
+      o.frequency.linearRampToValueAtTime(990,t+i*.4+.2);
+      o.frequency.linearRampToValueAtTime(770,t+i*.4+.4);
+      o.connect(g);g.connect(c.destination);
+      g.gain.setValueAtTime(.25,t+i*.4);g.gain.setValueAtTime(.25,t+i*.4+.39);g.gain.setValueAtTime(0,t+i*.4+.4);
+      o.start(t+i*.4);o.stop(t+i*.4+.41);
+    }
+  },
+  // 🚑 Ambulanță - hi-lo horn
+  ambulance:(c,t)=>{
+    for(let i=0;i<3;i++){
+      const o1=osc(c,'square',660,t+i*.5),g1=c.createGain();
+      o1.connect(g1);g1.connect(c.destination);
+      g1.gain.setValueAtTime(.2,t+i*.5);g1.gain.setValueAtTime(.2,t+i*.5+.24);g1.gain.setValueAtTime(0,t+i*.5+.25);
+      o1.start(t+i*.5);o1.stop(t+i*.5+.26);
+      const o2=osc(c,'square',550,t+i*.5+.25),g2=c.createGain();
+      o2.connect(g2);g2.connect(c.destination);
+      g2.gain.setValueAtTime(.2,t+i*.5+.25);g2.gain.setValueAtTime(.2,t+i*.5+.49);g2.gain.setValueAtTime(0,t+i*.5+.5);
+      o2.start(t+i*.5+.25);o2.stop(t+i*.5+.51);
+    }
+  },
+  // 🚒 Pompieri - rising air horn
+  firefighter:(c,t)=>{
+    for(let i=0;i<2;i++){
+      const o=osc(c,'sawtooth',300,t+i*.8),g=c.createGain();
+      o.frequency.linearRampToValueAtTime(900,t+i*.8+.6);
+      o.connect(g);g.connect(c.destination);
+      g.gain.setValueAtTime(0,t+i*.8);g.gain.linearRampToValueAtTime(.3,t+i*.8+.05);
+      g.gain.setValueAtTime(.3,t+i*.8+.59);g.gain.setValueAtTime(0,t+i*.8+.6);
+      o.start(t+i*.8);o.stop(t+i*.8+.61);
+    }
+  },
+  // ☢️ Alertă nucleară - warbling drone
+  nuclear:(c,t)=>{
+    const o=osc(c,'sawtooth',220,t),lfo=osc(c,'sine',2,t),g=gain(c,.35,t,2);
+    const lgain=c.createGain();lgain.gain.value=80;
+    lfo.connect(lgain);lgain.connect(o.frequency);
+    o.connect(g);g.connect(c.destination);
+    lfo.start(t);o.start(t);lfo.stop(t+2);o.stop(t+2);
+  },
+  // 🌊 Sonar submarin - ping echo
+  submarine:(c,t)=>{
+    [0,.6,1.1].forEach((delay,i)=>{
+      const vol=.4/(i+1);
+      const o=osc(c,'sine',800,t+delay),g=c.createGain();
+      o.frequency.exponentialRampToValueAtTime(600,t+delay+.3);
+      o.connect(g);g.connect(c.destination);
+      g.gain.setValueAtTime(vol,t+delay);g.gain.exponentialRampToValueAtTime(.001,t+delay+.4);
+      o.start(t+delay);o.stop(t+delay+.5);
+    });
+  },
+  // 📻 Radar militar - rotating sweep
+  radar:(c,t)=>{
+    for(let i=0;i<5;i++){
+      const o=osc(c,'sine',1200+i*80,t+i*.15),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      g.gain.setValueAtTime(.3,t+i*.15);g.gain.exponentialRampToValueAtTime(.001,t+i*.15+.12);
+      o.start(t+i*.15);o.stop(t+i*.15+.15);
+    }
+  },
+  // 🚀 Navă spațială - sci-fi laser
+  spaceship:(c,t)=>{
+    const o=osc(c,'sine',1800,t),g=gain(c,.4,t,.5);
+    o.frequency.exponentialRampToValueAtTime(200,t+.5);
+    const dist=c.createWaveShaper();
+    const k=200,n=256,curve=new Float32Array(n);
+    for(let i=0;i<n;i++){const x=i*2/n-1;curve[i]=(Math.PI+k)*x/(Math.PI+k*Math.abs(x));}
+    dist.curve=curve;
+    o.connect(dist);dist.connect(g);g.connect(c.destination);
+    o.start(t);o.stop(t+.5);
+  },
+};
+
+function playSound(type){try{const c=getCtx();(SOUNDS[type]||SOUNDS.ping)(c,c.currentTime);}catch(e){console.warn(e);}}
+function testModalSound(){playSound(document.getElementById('msound').value);}
+
+// ═══════════════════════════════════════════════════════
+// FETCH PAIRS
+// ═══════════════════════════════════════════════════════
+async function loadBinancePairs(){
+  try{
+    const r=await fetch('https://api.binance.com/api/v3/exchangeInfo');
+    const d=await r.json();
+    d.symbols.filter(s=>s.status==='TRADING'&&s.quoteAsset==='USDT').forEach(s=>{
+      if(!S.prices[s.symbol]) S.prices[s.symbol]={};
+      S.pairs.push({sym:s.symbol,base:s.baseAsset,exchange:'binance'});
+    });
+  }catch(e){console.error('Binance pairs',e);}
+}
+
+async function loadBybitPairs(){
+  try{
+    // Bybit v5 instruments
+    let cursor='', page=0;
+    const all=[];
+    do{
+      const url='https://api.bybit.com/v5/market/instruments-info?category=spot&limit=1000'+(cursor?'&cursor='+encodeURIComponent(cursor):'');
+      const r=await fetch(url);
+      const d=await r.json();
+      if(!d.result||!d.result.list) break;
+      d.result.list.filter(s=>s.quoteCoin==='USDT'&&s.status==='Trading').forEach(s=>{
+        all.push({sym:s.symbol,base:s.baseCoin,exchange:'bybit'});
+        if(!S.prices[s.symbol]) S.prices[s.symbol]={};
+      });
+      cursor=d.result.nextPageCursor||'';
+      page++;
+    }while(cursor && page<5);
+    S.pairs.push(...all);
+  }catch(e){console.error('Bybit pairs',e);}
+}
+
+async function loadBinancePrices(){
+  try{
+    const r=await fetch('https://api.binance.com/api/v3/ticker/24hr');
+    const d=await r.json();
+    d.filter(t=>t.symbol.endsWith('USDT')).forEach(t=>{
+      if(!S.prices[t.symbol]) S.prices[t.symbol]={};
+      S.prices[t.symbol].price=parseFloat(t.lastPrice);
+      S.prices[t.symbol].change=parseFloat(t.priceChangePercent);
+      S.prices[t.symbol].vol=parseFloat(t.quoteVolume);
+    });
+  }catch(e){console.error('Binance prices',e);}
+}
+
+async function loadBybitPrices(){
+  try{
+    // Bybit tickers for all spot
+    const r=await fetch('https://api.bybit.com/v5/market/tickers?category=spot');
+    const d=await r.json();
+    if(d.result&&d.result.list){
+      d.result.list.filter(t=>t.symbol.endsWith('USDT')).forEach(t=>{
+        const sym=t.symbol;
+        const price=parseFloat(t.lastPrice);
+        const change=parseFloat(t.price24hPcnt)*100;
+        const vol=parseFloat(t.quoteVolume||t.turnover24h||0);
+        if(!S.prices[sym]) S.prices[sym]={};
+        // Only set if not already set by Binance (Binance takes priority for shared pairs)
+        const pair=S.pairs.find(p=>p.sym===sym&&p.exchange==='bybit');
+        if(pair){
+          S.prices[sym].price=price;
+          S.prices[sym].change=change;
+          S.prices[sym].vol=vol;
+        }
+      });
+    }
+  }catch(e){console.error('Bybit prices',e);}
+}
+
+// ═══════════════════════════════════════════════════════
+// WEBSOCKETS
+// ═══════════════════════════════════════════════════════
+function connectBinanceWS(){
+  const ws=new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+  ws.onopen=()=>{S.wsReady.binance=true;updateWS();};
+  ws.onmessage=(e)=>{
+    JSON.parse(e.data).filter(t=>t.s.endsWith('USDT')).forEach(t=>{
+      const sym=t.s, oldP=S.prices[sym]?.price;
+      if(!S.prices[sym]) S.prices[sym]={};
+      S.prices[sym].prevPrice=oldP;
+      S.prices[sym].price=parseFloat(t.c);
+      S.prices[sym].change=parseFloat(t.P);
+      if(oldP) checkAlarms(sym,oldP,S.prices[sym].price);
+      if(S.tab==='prices') updateRow(sym,oldP);
+    });
+  };
+  ws.onerror=ws.onclose=()=>{S.wsReady.binance=false;updateWS();setTimeout(connectBinanceWS,4000);};
+}
+
+function connectBybitWS(){
+  const ws=new WebSocket('wss://stream.bybit.com/v5/public/spot');
+  ws.onopen=()=>{
+    S.wsReady.bybit=true;updateWS();
+    // Get bybit-only symbols for subscription
+    const bybitSyms=S.pairs.filter(p=>p.exchange==='bybit').map(p=>p.sym);
+    // Subscribe in batches of 10
+    for(let i=0;i<bybitSyms.length;i+=10){
+      const args=bybitSyms.slice(i,i+10).map(s=>`tickers.${s}`);
+      try{ws.send(JSON.stringify({op:'subscribe',args}));}catch(e){}
+    }
+  };
+  ws.onmessage=(e)=>{
+    try{
+      const d=JSON.parse(e.data);
+      // Handle ticker updates
+      if(d.topic&&d.topic.startsWith('tickers.')&&d.data){
+        const sym=d.data.symbol;
+        if(!sym||!sym.endsWith('USDT')) return;
+        const newPriceStr=d.data.lastPrice;
+        if(!newPriceStr) return;
+        const newPrice=parseFloat(newPriceStr);
+        if(isNaN(newPrice)||newPrice<=0) return;
+        const oldP=S.prices[sym]?.price;
+        if(!S.prices[sym]) S.prices[sym]={};
+        S.prices[sym].prevPrice=oldP;
+        S.prices[sym].price=newPrice;
+        if(d.data.price24hPcnt!==undefined) S.prices[sym].change=parseFloat(d.data.price24hPcnt)*100;
+        if(oldP&&oldP!==newPrice){
+          checkAlarms(sym,oldP,newPrice);
+          if(S.tab==='prices') updateRow(sym,oldP);
+        }
+      }
+    }catch(err){}
+  };
+  ws.onerror=ws.onclose=()=>{S.wsReady.bybit=false;updateWS();setTimeout(connectBybitWS,5000);};
+}
+
+function updateWS(){
+  const live=S.wsReady.binance||S.wsReady.bybit;
+  const label=S.wsReady.binance&&S.wsReady.bybit?'live (Binance+Bybit)':S.wsReady.binance?'live (Binance)':S.wsReady.bybit?'live (Bybit)':'reconectare...';
+  document.getElementById('wsDot').className='ws-dot'+(live?' live':'');
+  document.getElementById('wsLabel').textContent=label;
+}
+
+// ═══════════════════════════════════════════════════════
+// ALARM ENGINE - persistent bidirectional
+// ═══════════════════════════════════════════════════════
+function checkAlarms(sym,oldP,newP){
+  S.alarms.forEach(a=>{
+    if(!a.active||a.sym!==sym) return;
+    const tp=parseFloat(a.targetPrice);
+    const newSide=newP>=tp?'above':'below';
+    const oldSide=oldP>=tp?'above':'below';
+    if(newSide===oldSide) return; // no cross
+    const dir=newSide==='above'?'up':'down';
+    const match=(a.cond==='above'&&dir==='up')||(a.cond==='below'&&dir==='down')||(a.cond==='both');
+    if(match) triggerAlarm(a,dir,newP);
+  });
+}
+
+function triggerAlarm(a,dir,price){
+  playSound(a.sound);
+  flashScreen();
+  if(navigator.vibrate) navigator.vibrate([200,80,200,80,400]);
+  const sym=a.sym.replace('USDT','/USDT');
+  const label=dir==='up'?'⬆ urcat peste':'⬇ coborât sub';
+  showToast(`🔔 ${sym} ${label} $${fmt2(parseFloat(a.targetPrice))}`);
+  a.lastTrig=Date.now();a.lastDir=dir;
+  if(S.tab==='alarms') renderAlarms();
+  // Browser notification
+  if(Notification.permission==='granted'){
+    try{new Notification(`🔔 ${sym}`,{body:`Prețul a ${label} $${fmt2(parseFloat(a.targetPrice))}\nPreț actual: ${fmtP(price)}`,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="48" font-size="48">⚡</text></svg>'});}catch(e){}
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// FORMAT
+// ═══════════════════════════════════════════════════════
+function fmtP(p){
+  if(!p&&p!==0) return '—';
+  if(p>=10000) return '$'+p.toLocaleString('en',{maximumFractionDigits:0});
+  if(p>=1000)  return '$'+p.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(p>=1)     return '$'+p.toFixed(4);
+  if(p>=0.01)  return '$'+p.toFixed(5);
+  return '$'+p.toFixed(8);
+}
+function fmt2(p){
+  if(p>=1000) return p.toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:2});
+  if(p>=1)    return p.toFixed(4);
+  return p.toFixed(8);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER PRICES
+// ═══════════════════════════════════════════════════════
+const COLORS=['#f7931a','#627eea','#9945ff','#f0b90b','#346aa9','#c2a633','#0033ad','#e84142','#345d9d','#e6007a','#16c784','#ea3943','#2775ca','#8247e5','#2354e6','#00aaff','#ff6b35','#a855f7'];
+const colMap={};let colIdx=0;
+function getCol(sym){if(!colMap[sym]) colMap[sym]=COLORS[colIdx++%COLORS.length];return colMap[sym];}
+
+function getFiltered(){
+  const q=S.query.toLowerCase().replace('/','');
+  const seen=new Set();
+  return S.pairs.filter(p=>{
+    if(!S.filters[p.exchange]) return false;
+    if(q&&!p.sym.toLowerCase().includes(q)&&!p.base.toLowerCase().includes(q)) return false;
+    const key=p.sym;
+    if(seen.has(key)) return false; // dedup
+    seen.add(key);
+    return true;
+  });
+}
+
+let renderPending=false;
+function scheduleRender(){if(!renderPending){renderPending=true;requestAnimationFrame(()=>{doRender();renderPending=false;});}}
+
+function doRender(){
+  const filtered=getFiltered().slice(0,300);
+  const c=document.getElementById('plist');
+  const st=c.scrollTop;
+  if(!filtered.length){c.innerHTML='<div class="lrow">Nicio pereche găsită</div>';return;}
+  c.innerHTML=filtered.map(p=>{
+    const pd=S.prices[p.sym]||{};
+    const col=getCol(p.sym);
+    const ini=p.base.slice(0,4);
+    const hasA=S.alarms.some(a=>a.sym===p.sym&&a.active);
+    const up=(pd.change||0)>=0;
+    return `<div class="prow${hasA?' ha':''}" id="pr_${p.sym}" onclick="onRowClick('${p.sym}')">
+      <div class="pico" style="background:${col}22;color:${col}">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div class="pname">${p.sym.replace('USDT','/USDT')}</div>
+        <div class="psub">${p.base}&nbsp;<span class="xtag ${p.exchange==='binance'?'xbin':'xbyb'}">${p.exchange==='binance'?'BNB':'BYB'}</span></div>
+      </div>
+      <div class="pright">
+        <div class="pprice" id="pp_${p.sym}">${fmtP(pd.price)}</div>
+        <div class="pchg ${up?'up':'dn'}" id="pc_${p.sym}">${pd.change!==undefined?(up?'+':'')+pd.change.toFixed(2)+'%':'—'}</div>
+      </div>
+      ${hasA?'<div class="adots"><div class="adot"></div></div>':''}
+    </div>`;
+  }).join('');
+  c.scrollTop=st;
+}
+
+function updateRow(sym,oldP){
+  const prEl=document.getElementById('pp_'+sym);
+  const chEl=document.getElementById('pc_'+sym);
+  const rEl=document.getElementById('pr_'+sym);
+  if(!prEl) return;
+  const pd=S.prices[sym];
+  if(pd?.price) prEl.textContent=fmtP(pd.price);
+  if(pd?.change!==undefined){
+    const up=pd.change>=0;
+    chEl.textContent=(up?'+':'')+pd.change.toFixed(2)+'%';
+    chEl.className='pchg '+(up?'up':'dn');
+  }
+  if(rEl&&pd?.price&&oldP){
+    rEl.classList.remove('fu','fd');
+    void rEl.offsetWidth;
+    rEl.classList.add(pd.price>=oldP?'fu':'fd');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ALARMS
+// ═══════════════════════════════════════════════════════
+const SLABELS={ping:'Ping clasic',beep:'Beep digital',chime:'Chime melodic',alert:'Alert urgent',bell:'Clopoțel',blip:'Blip scurt',rise:'Rise tone',fall:'Fall tone',police:'Sirena poliție',ambulance:'Sirena ambulanță',firefighter:'Sirena pompieri',nuclear:'Alertă nucleară',submarine:'Sonar submarin',radar:'Radar militar',spaceship:'Navă spațială'};
+
+function renderAlarms(){
+  const active=S.alarms.filter(a=>a.active).length;
+  const badge=document.getElementById('acnt');
+  badge.style.display=active>0?'':'none';
+  badge.textContent=active;
+  const el=document.getElementById('alist');
+  if(!S.alarms.length){
+    el.innerHTML=`<div class="empty"><div class="eico">🔕</div><div class="etxt">Nicio alarmă setată.<br>Apasă pe o monedă din lista de prețuri<br>pentru a adăuga rapid o alarmă.</div></div>`;
+    return;
+  }
+  el.innerHTML=S.alarms.map(a=>{
+    const pd=S.prices[a.sym];
+    const cp=pd?.price;
+    const tp=parseFloat(a.targetPrice);
+    const diff=cp?((cp-tp)/tp*100):null;
+    const recent=a.lastTrig&&(Date.now()-a.lastTrig<8000);
+    const condIco=a.cond==='above'?'📈':a.cond==='below'?'📉':'↕';
+    return `<div class="acard${recent?' trig':''}">
+      <div class="achdr">
+        <div class="acpair">${a.sym.replace('USDT','/USDT')}</div>
+        <span class="xtag ${a.exchange==='binance'?'xbin':'xbyb'}" style="font-size:10px;padding:2px 6px">${a.exchange==='binance'?'Binance':'Bybit'}</span>
+        ${recent?`<span class="pill rpill">${a.lastDir==='up'?'⬆':'⬇'} Declanșată!</span>`:''}
+        <button class="toggle${a.active?' on':''}" onclick="toggleA('${a.id}')" aria-label="on/off"></button>
+      </div>
+      <div class="acbody">
+        <div class="adet">${condIco} <strong>${a.cond==='above'?'Urcă PESTE':a.cond==='below'?'Coboară SUB':'Orice trecere'}</strong> <strong>$${fmt2(tp)}</strong>
+          ${diff!==null?`<span class="pill ${diff>=0?'gpill':'rpill'}">${diff>=0?'+':''}${diff.toFixed(2)}%</span>`:''}
+        </div>
+        <div class="adet">🎵 ${SLABELS[a.sound]||a.sound} &nbsp;•&nbsp; Actual: <strong>${fmtP(cp)}</strong></div>
+        ${a.note?`<div class="adet" style="font-style:italic;color:var(--muted)">📝 ${a.note}</div>`:''}
+        <div class="aacts">
+          <button class="btn bghost bsm" onclick="playSound('${a.sound}')">▶ Test</button>
+          <button class="btn bghost bsm" onclick="editAlarm('${a.id}')">✏️ Editează</button>
+          <button class="btn bdanger bsm" onclick="delAlarm('${a.id}')" style="margin-left:auto">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// ALARM CRUD
+// ═══════════════════════════════════════════════════════
+function genId(){return Math.random().toString(36).slice(2,10);}
+function saveStore(){try{localStorage.setItem('ca_alarms',JSON.stringify(S.alarms));}catch(e){}}
+function loadStore(){try{const d=localStorage.getItem('ca_alarms');if(d) S.alarms=JSON.parse(d);}catch(e){}}
+
+function toggleA(id){const a=S.alarms.find(x=>x.id===id);if(a){a.active=!a.active;saveStore();renderAlarms();doRender();}}
+function delAlarm(id){S.alarms=S.alarms.filter(x=>x.id!==id);saveStore();renderAlarms();doRender();showToast('Alarmă ștearsă');}
+
+function editAlarm(id){
+  const a=S.alarms.find(x=>x.id===id);if(!a) return;
+  S.editId=id;S.selSym=a.sym;
+  document.getElementById('mtitle').textContent='Editează alarmă';
+  document.getElementById('mpsearch').value=a.sym.replace('USDT','/USDT');
+  document.getElementById('mcond').value=a.cond;
+  document.getElementById('mprice').value=a.targetPrice;
+  document.getElementById('msound').value=a.sound;
+  document.getElementById('mnote').value=a.note||'';
+  document.getElementById('msavebtn').textContent='Actualizează';
+  showPriceHint(a.sym);
+  renderPairResults('');
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveAlarm(){
+  const sym=S.selSym;
+  if(!sym){showToast('⚠ Selectează o pereche!');return;}
+  const pv=document.getElementById('mprice').value;
+  if(!pv||isNaN(pv)){showToast('⚠ Introdu un preț valid!');return;}
+  const obj={
+    id:S.editId||genId(),sym,
+    exchange:S.pairs.find(p=>p.sym===sym)?.exchange||'binance',
+    cond:document.getElementById('mcond').value,
+    targetPrice:pv,
+    sound:document.getElementById('msound').value,
+    note:document.getElementById('mnote').value.trim(),
+    active:true
+  };
+  if(S.editId){
+    const i=S.alarms.findIndex(x=>x.id===S.editId);
+    if(i>=0) S.alarms[i]={...S.alarms[i],...obj};
+  } else {
+    S.alarms.push(obj);
+  }
+  saveStore();closeModal();renderAlarms();doRender();
+  showToast(S.editId?'✅ Alarmă actualizată':'✅ Alarmă salvată!');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(sym){
+  S.editId=null;S.selSym=sym||null;
+  document.getElementById('mtitle').textContent='Alarmă nouă';
+  document.getElementById('mpsearch').value=sym?sym.replace('USDT','/USDT'):'';
+  document.getElementById('mcond').value='both';
+  document.getElementById('mprice').value=sym&&S.prices[sym]?.price?S.prices[sym].price.toFixed(sym&&S.prices[sym]?.price>=100?2:6):'';
+  document.getElementById('msound').value='ping';
+  document.getElementById('mnote').value='';
+  document.getElementById('msavebtn').textContent='Salvează';
+  if(sym) showPriceHint(sym); else document.getElementById('cpricehint').style.display='none';
+  renderPairResults(sym?sym:'');
+  document.getElementById('modal').style.display='flex';
+  setTimeout(()=>document.getElementById('mpsearch').focus(),100);
+}
+function closeModal(){document.getElementById('modal').style.display='none';S.editId=null;S.selSym=null;}
+function handleBDClick(e){if(e.target===document.getElementById('modal')) closeModal();}
+
+function showPriceHint(sym){
+  const p=S.prices[sym]?.price;
+  const el=document.getElementById('cpricehint');
+  if(p){el.style.display='block';el.textContent=`💰 Preț curent ${sym.replace('USDT','/USDT')}: ${fmtP(p)}`;}
+  else el.style.display='none';
+}
+
+function renderPairResults(q){
+  q=q.toLowerCase().replace('/','');
+  const results=S.pairs.filter((p,i,arr)=>{
+    if(!q) return p.exchange==='binance'||!S.pairs.find(x=>x.sym===p.sym&&x.exchange==='binance');
+    return p.sym.toLowerCase().includes(q)||p.base.toLowerCase().includes(q);
+  }).slice(0,50);
+  // Deduplicate by sym (prefer binance)
+  const seen=new Set();
+  const deduped=results.filter(p=>{if(seen.has(p.sym)) return false;seen.add(p.sym);return true;});
+  const el=document.getElementById('mpres');
+  if(!deduped.length){el.innerHTML='<div style="padding:12px;color:var(--muted);font-size:13px">Nicio pereche</div>';return;}
+  el.innerHTML=deduped.slice(0,40).map(p=>`
+    <div class="pitem${S.selSym===p.sym?' sel':''}" onclick="selPair('${p.sym}')">
+      <span class="pitem-name">${p.sym.replace('USDT','/USDT')} <span class="xtag ${p.exchange==='binance'?'xbin':'xbyb'}">${p.exchange==='binance'?'BNB':'BYB'}</span></span>
+      <span class="pitem-price">${fmtP(S.prices[p.sym]?.price)}</span>
+    </div>`).join('');
+}
+
+function selPair(sym){
+  S.selSym=sym;
+  document.getElementById('mpsearch').value=sym.replace('USDT','/USDT');
+  const p=S.prices[sym]?.price;
+  if(p) document.getElementById('mprice').value=p>=100?p.toFixed(2):p.toFixed(6);
+  showPriceHint(sym);
+  renderPairResults('');
+}
+
+document.getElementById('mpsearch').addEventListener('input',function(){renderPairResults(this.value);});
+
+// ═══════════════════════════════════════════════════════
+// TAB / FILTER / SEARCH
+// ═══════════════════════════════════════════════════════
+function switchTab(t){
+  S.tab=t;
+  document.getElementById('ppane').style.display=t==='prices'?'flex':'none';
+  document.getElementById('apane').style.display=t==='alarms'?'block':'none';
+  document.getElementById('tP').className='tab'+(t==='prices'?' active':'');
+  document.getElementById('tA').className='tab'+(t==='alarms'?' active':'');
+  if(t==='alarms') renderAlarms();
+}
+function toggleFilter(ex){
+  S.filters[ex]=!S.filters[ex];
+  document.getElementById('fb_'+ex).className='fbtn'+(S.filters[ex]?' on':'');
+  scheduleRender();
+}
+document.getElementById('sinp').addEventListener('input',function(){S.query=this.value;scheduleRender();});
+function onRowClick(sym){openModal(sym);}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function flashScreen(){const e=document.getElementById('fov');e.classList.add('show');setTimeout(()=>e.classList.remove('show'),600);}
+let toastT;
+function showToast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),3000);}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+async function init(){
+  loadStore();renderAlarms();
+  document.getElementById('plist').innerHTML='<div class="lrow">⏳ Se încarcă perechile Binance + Bybit...</div>';
+  // Load pairs in parallel
+  await Promise.all([loadBinancePairs(),loadBybitPairs()]);
+  // Load prices in parallel
+  await Promise.all([loadBinancePrices(),loadBybitPrices()]);
+  // Sort by volume
+  S.pairs.sort((a,b)=>(S.prices[b.sym]?.vol||0)-(S.prices[a.sym]?.vol||0));
+  doRender();
+  // Connect websockets
+  connectBinanceWS();
+  connectBybitWS();
+  // Request notification permission
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+  // Unlock audio on first touch
+  document.addEventListener('touchstart',()=>{try{getCtx();}catch(e){}},{once:true});
+  document.addEventListener('click',()=>{try{getCtx();}catch(e){}},{once:true});
+}
+
+init();
+</script>
+</body>
+</html>
